@@ -9,12 +9,15 @@
 import UIKit
 import Chatto
 import ChattoAdditions
+import FirebaseAuth
+import FirebaseDatabase
 
 class ChatLogController: BaseChatViewController {
 
   var presenter: BasicChatInputBarPresenter!
   var datasource: DataSource!
   var decorator = Decorator()
+  var userUID: String!
   
   var totalMessages: [ChatItemProtocol] = []
   
@@ -40,11 +43,13 @@ class ChatLogController: BaseChatViewController {
       
       let date = Date()
       let double = Double(date.timeIntervalSinceReferenceDate)
-      let senderID = "me"
+      let senderID = Auth.auth().currentUser!.uid
+      let messageUID: String = "\(double)\(senderID)".replacingOccurrences(of: ".", with: "")
       
-      let message = MessageModel(uid: "\(double, senderID)", senderId: senderID, type: TextModel.chatItemType, isIncoming: false, date: Date(), status: .success)
+      let message = MessageModel(uid: messageUID, senderId: senderID, type: TextModel.chatItemType, isIncoming: false, date: Date(), status: .sending)
       let textMessage = TextModel(messageModel: message, text: text)
       self?.datasource.addMessage(message: textMessage)
+      self?.sendOnlineTextMessage(text: text, uid: messageUID, double: double, senderId: senderID)
     }
     
     return item
@@ -69,22 +74,33 @@ class ChatLogController: BaseChatViewController {
   override func viewDidLoad() {
     super.viewDidLoad()
     
-    for i in 1...295 {
-      let message = MessageModel(uid: "\(i)", senderId: "", type: TextModel.chatItemType, isIncoming: false, date: Date(), status: .success)
-      self.totalMessages.append(TextModel(messageModel: message, text: "\(i)"))
-    }
-    
-    self.datasource = DataSource(totalMessages: self.totalMessages);
     self.chatDataSource = self.datasource
     self.chatItemsDecorator = self.decorator
     self.constants.preferredMaxMessageCount = 300
   }
 
-  override func didReceiveMemoryWarning() {
-    super.didReceiveMemoryWarning()
-    // Dispose of any resources that can be recreated.
+  func sendOnlineTextMessage(text: String, uid: String, double: Double, senderId: String) {
+    let message: [String: Any] = [
+      "text": text,
+      "uid": uid,
+      "date": double,
+      "senderID": senderId,
+      "status": "success"
+    ]
+    
+    let childUpdates = [
+      "/User-messages/\(senderId)/\(self.userUID!)/\(uid)": message,
+      "/User-messages/\(self.userUID!)/\(senderId)/\(uid)": message
+    ]
+    
+    Database.database().reference().updateChildValues(childUpdates) { (error, _) in
+      if error != nil {
+        self.datasource.updateTextMessage(uid: uid, status: .failed)
+        return
+      }
+      
+      self.datasource.updateTextMessage(uid: uid, status: .success)
+    }
   }
-
-
 }
 

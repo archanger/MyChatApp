@@ -12,5 +12,6 @@ target 'MyChatApp' do
   pod 'Firebase/Core'
   pod 'Firebase/Auth'
   pod 'Firebase/Database'
+  pod 'FirebaseUI/Database'
   pod 'SwiftyJSON'
 end

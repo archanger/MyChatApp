@@ -12,7 +12,7 @@ import UIKit
 extension UIViewController {
   
   @objc func showingKeybord(notification: Notification) {
-    if let keyboardHeight = (notification.userInfo![UIKeyboardFrameBeginUserInfoKey] as? NSValue)?.cgRectValue.height {
+    if let keyboardHeight = (notification.userInfo![UIKeyboardFrameBeginUserInfoKey] as? NSValue)?.cgRectValue.height, self.view.frame.origin.y >= 0{
       self.view.frame.origin.y -= keyboardHeight
     }
   }

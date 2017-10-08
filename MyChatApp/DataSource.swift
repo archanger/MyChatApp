@@ -12,7 +12,7 @@ import ChattoAdditions
 
 class DataSource: ChatDataSourceProtocol {
   
-  var delegate: ChatDataSourceDelegateProtocol?
+  weak var delegate: ChatDataSourceDelegateProtocol?
   var controller = ChatItemsController()
   
   var chatItems: [ChatItemProtocol] {
@@ -43,6 +43,16 @@ class DataSource: ChatDataSourceProtocol {
   func addMessage(message: ChatItemProtocol) {
     self.controller.insertItem(message: message)
     self.delegate?.chatDataSourceDidUpdate(self)
+  }
+  
+  func updateTextMessage(uid: String, status: MessageStatus) {
+    if let index = self.controller.chatItems.index(where: { (message) -> Bool in
+      return message.uid == uid
+    }) {
+      let message = self.controller.chatItems[index] as! TextModel
+      message.status = status
+      self.delegate?.chatDataSourceDidUpdate(self)
+    }
   }
   
   func adjustNumberOfMessages(preferredMaxCount: Int?, focusPosition: Double, completion: (Bool) -> Void) {

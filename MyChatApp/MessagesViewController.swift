@@ -10,15 +10,22 @@ import UIKit
 import FirebaseAuth
 import FirebaseDatabase
 import SwiftyJSON
+import FirebaseDatabaseUI
+import Chatto
 
-class MessagesViewController: UIViewController {
+class MessagesViewController: UIViewController, FUICollectionDelegate, UITableViewDelegate, UITableViewDataSource {
+  
+  let contacts = FUIArray(query: Database.database().reference().child("Users").child(Auth.auth().currentUser!.uid).child("Contacts"))
   
   @IBOutlet weak var tableView: UITableView!
   
   override func viewDidLoad() {
     super.viewDidLoad()
     
-    // Do any additional setup after loading the view.
+    self.contacts.observeQuery()
+    self.contacts.delegate = self
+    self.tableView.delegate = self
+    self.tableView.dataSource = self
   }
   
   override func didReceiveMemoryWarning() {
@@ -57,11 +64,76 @@ class MessagesViewController: UIViewController {
         let (_, value) = arg
         return value["email"].stringValue == email
       }) {
-        Database.database().reference().child("Users").child(Auth.auth().currentUser!.uid).child("Contacts").child(snapshot[index].key).updateChildValues(["email": snapshot[index].value["email"].stringValue, "name":snapshot[index].value["name"].stringValue])
+        
+        let allUpdates =
+          ["/Users/\(Auth.auth().currentUser!.uid)/Contacts/\(snapshot[index].key)": [
+            "email": snapshot[index].value["email"].stringValue,
+            "name":snapshot[index].value["name"].stringValue
+            ],
+           "/Users/\(snapshot[index].key)/Contacts/\(Auth.auth().currentUser!.uid)" : [
+            "email": Auth.auth().currentUser!.email!,
+            "name": Auth.auth().currentUser!.displayName!
+            ]
+          ]
+        
+        Database.database().reference().updateChildValues(allUpdates)
+        
         self?.alert(message: "Success")
       } else {
         self?.alert(message: "No such email")
       }
     }
+  }
+}
+
+extension MessagesViewController {
+  func array(_ array: FUICollection, didAdd object: Any, at index: UInt) {
+    self.tableView.beginUpdates()
+    self.tableView.insertRows(at: [IndexPath(row: Int(index), section: 0)], with: .automatic)
+    self.tableView.endUpdates()
+  }
+  
+  func array(_ array: FUICollection, didMove object: Any, from fromIndex: UInt, to toIndex: UInt) {
+    self.tableView.beginUpdates()
+    self.tableView.insertRows(at: [IndexPath(row: Int(toIndex), section: 0)], with: .automatic)
+    self.tableView.deleteRows(at: [IndexPath(row: Int(fromIndex), section: 0)], with: .automatic)
+    self.tableView.endUpdates()
+  }
+  
+  func array(_ array: FUICollection, didRemove object: Any, at index: UInt) {
+    self.tableView.beginUpdates()
+    self.tableView.deleteRows(at: [IndexPath(row: Int(index), section: 0)], with: .automatic)
+    self.tableView.endUpdates()
+  }
+  
+  func array(_ array: FUICollection, didChange object: Any, at index: UInt) {
+    self.tableView.beginUpdates()
+    self.tableView.reloadRows(at: [IndexPath(row: Int(index), section: 0)], with: .automatic)
+    self.tableView.endUpdates()
+  }
+  
+  func numberOfSections(in tableView: UITableView) -> Int {
+    return 1
+  }
+  
+  func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+    return Int(self.contacts.count)
+  }
+  
+  func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+    let cell = tableView.dequeueReusableCell(withIdentifier: "cell", for: indexPath) as! MessageTableViewCell
+    let info = JSON((contacts[UInt(indexPath.row)] as? DataSnapshot)?.value as Any).dictionaryObject
+    cell.name.text = info?["name"] as? String
+    cell.lastMessageDate.text = nil
+    return cell
+  }
+  
+  func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+    let chatLog = ChatLogController()
+    let uid = (contacts[UInt(indexPath.row)] as? DataSnapshot)?.key
+    chatLog.userUID = uid
+    chatLog.datasource = DataSource(totalMessages: [])
+    self.navigationController?.show(chatLog, sender: nil)
+    tableView.deselectRow(at: indexPath, animated: true)
   }
 }

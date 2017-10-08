@@ -45,6 +45,10 @@ class SignUpViewController: UIViewController {
       
       Database.database().reference().child("Users").child(user!.uid).updateChildValues(["email": email, "name": fullname])
       
+      let changeRequest = user!.createProfileChangeRequest()
+      changeRequest.displayName = fullname
+      changeRequest.commitChanges(completion: nil)
+      
       let table = self?.storyboard?.instantiateViewController(withIdentifier: "table")
       self?.navigationController?.show(table!, sender: nil)
     }
