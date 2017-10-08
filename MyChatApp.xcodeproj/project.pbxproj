@@ -26,6 +26,8 @@
 		ED865C2D1F89662A0058B28F /* SignUpViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = ED865C2C1F89662A0058B28F /* SignUpViewController.swift */; };
 		ED865C2E1F8967BC0058B28F /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = ED865C291F8965220058B28F /* GoogleService-Info.plist */; };
 		ED865C301F8968420058B28F /* Helpers.swift in Sources */ = {isa = PBXBuildFile; fileRef = ED865C2F1F8968420058B28F /* Helpers.swift */; };
+		ED9D435A1F8A1F31008C3296 /* MessagesViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = ED9D43591F8A1F31008C3296 /* MessagesViewController.swift */; };
+		ED9D435C1F8A1F43008C3296 /* MessageTableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = ED9D435B1F8A1F43008C3296 /* MessageTableViewCell.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -52,6 +54,8 @@
 		ED865C2A1F89661E0058B28F /* SignInViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignInViewController.swift; sourceTree = "<group>"; };
 		ED865C2C1F89662A0058B28F /* SignUpViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignUpViewController.swift; sourceTree = "<group>"; };
 		ED865C2F1F8968420058B28F /* Helpers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Helpers.swift; sourceTree = "<group>"; };
+		ED9D43591F8A1F31008C3296 /* MessagesViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MessagesViewController.swift; sourceTree = "<group>"; };
+		ED9D435B1F8A1F43008C3296 /* MessageTableViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MessageTableViewCell.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -113,6 +117,8 @@
 				ED865C181F89394A0058B28F /* DataSource.swift */,
 				ED865C1C1F893B840058B28F /* Decarator.swift */,
 				ED865C1A1F8939800058B28F /* ChatItemsController.swift */,
+				ED9D43591F8A1F31008C3296 /* MessagesViewController.swift */,
+				ED9D435B1F8A1F43008C3296 /* MessageTableViewCell.swift */,
 				ED865C2F1F8968420058B28F /* Helpers.swift */,
 				ED3B2C081F893099000D8761 /* Main.storyboard */,
 				ED3B2C0B1F893099000D8761 /* Assets.xcassets */,
@@ -242,14 +248,20 @@
 				"${SRCROOT}/Pods/Target Support Files/Pods-MyChatApp/Pods-MyChatApp-frameworks.sh",
 				"${BUILT_PRODUCTS_DIR}/Chatto/Chatto.framework",
 				"${BUILT_PRODUCTS_DIR}/ChattoAdditions/ChattoAdditions.framework",
+				"${BUILT_PRODUCTS_DIR}/GTMSessionFetcher/GTMSessionFetcher.framework",
 				"${BUILT_PRODUCTS_DIR}/GoogleToolboxForMac/GoogleToolboxForMac.framework",
+				"${BUILT_PRODUCTS_DIR}/SwiftyJSON/SwiftyJSON.framework",
+				"${BUILT_PRODUCTS_DIR}/leveldb-library/leveldb.framework",
 				"${BUILT_PRODUCTS_DIR}/nanopb/nanopb.framework",
 			);
 			name = "[CP] Embed Pods Frameworks";
 			outputPaths = (
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/Chatto.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/ChattoAdditions.framework",
+				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/GTMSessionFetcher.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/GoogleToolboxForMac.framework",
+				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/SwiftyJSON.framework",
+				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/leveldb.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/nanopb.framework",
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -279,6 +291,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				ED9D435A1F8A1F31008C3296 /* MessagesViewController.swift in Sources */,
 				ED865C261F8959C30058B28F /* PhotoBuilder.swift in Sources */,
 				ED865C301F8968420058B28F /* Helpers.swift in Sources */,
 				ED865C241F8958BB0058B28F /* PhotoModel.swift in Sources */,
@@ -291,6 +304,7 @@
 				ED865C2B1F89661E0058B28F /* SignInViewController.swift in Sources */,
 				ED865C191F89394A0058B28F /* DataSource.swift in Sources */,
 				ED3B2C051F893099000D8761 /* AppDelegate.swift in Sources */,
+				ED9D435C1F8A1F43008C3296 /* MessageTableViewCell.swift in Sources */,
 				ED865C2D1F89662A0058B28F /* SignUpViewController.swift in Sources */,
 				ED865C211F893E070058B28F /* TextHandler.swift in Sources */,
 			);

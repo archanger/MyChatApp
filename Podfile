@@ -10,4 +10,7 @@ target 'MyChatApp' do
   pod 'ChattoAdditions', :git => 'https://github.com/badoo/Chatto', :branch => 'swift4'
   
   pod 'Firebase/Core'
+  pod 'Firebase/Auth'
+  pod 'Firebase/Database'
+  pod 'SwiftyJSON'
 end

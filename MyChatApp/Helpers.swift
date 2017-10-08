@@ -20,4 +20,11 @@ extension UIViewController {
   @objc func hidingKeyboard(notification: Notification) {
     self.view.frame.origin.y = 0
   }
+  
+  func alert(message: String) {
+    let alertControler = UIAlertController(title: nil, message: message, preferredStyle: .alert)
+    let okAction = UIAlertAction(title: "Ok", style: .default, handler: nil)
+    alertControler.addAction(okAction)
+    self.present(alertControler, animated: true, completion: nil)
+  }
 }
