@@ -95,7 +95,9 @@ class ChatLogController: BaseChatViewController, FUICollectionDelegate {
     
     let childUpdates = [
       "/User-messages/\(senderId)/\(self.userUID!)/\(uid)": message,
-      "/User-messages/\(self.userUID!)/\(senderId)/\(uid)": message
+      "/User-messages/\(self.userUID!)/\(senderId)/\(uid)": message,
+      "/Users/\(Me.uid)/Contacts/\(self.userUID!)/lastMessage" : message,
+      "/Users/\(self.userUID!)/Contacts/\(Me.uid)/lastMessage" : message,
     ]
     
     Database.database().reference().updateChildValues(childUpdates) { (error, _) in

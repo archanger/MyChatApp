@@ -15,7 +15,12 @@ import Chatto
 
 class MessagesViewController: UIViewController, FUICollectionDelegate, UITableViewDelegate, UITableViewDataSource {
   
-  let contacts = FUIArray(query: Database.database().reference().child("Users").child(Me.uid).child("Contacts"))
+  let contacts = FUISortedArray(query: Database.database().reference().child("Users").child(Me.uid).child("Contacts"), delegate: nil) { (lhs, rhs) -> ComparisonResult in
+    let lhs = Date(timeIntervalSinceReferenceDate: JSON(lhs.value as Any)["lastMessage"]["date"].doubleValue)
+    let rhs = Date(timeIntervalSinceReferenceDate: JSON(rhs.value as Any)["lastMessage"]["date"].doubleValue)
+    
+    return rhs.compare(lhs)
+  }
   
   @IBOutlet weak var tableView: UITableView!
   
@@ -123,9 +128,10 @@ extension MessagesViewController {
   
   func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
     let cell = tableView.dequeueReusableCell(withIdentifier: "cell", for: indexPath) as! MessageTableViewCell
-    let info = JSON((contacts[UInt(indexPath.row)] as? DataSnapshot)?.value as Any).dictionaryObject
-    cell.name.text = info?["name"] as? String
-    cell.lastMessageDate.text = nil
+    let info = JSON((contacts[UInt(indexPath.row)] as? DataSnapshot)?.value as Any).dictionaryValue
+    cell.name.text = info["name"]?.stringValue
+    cell.lastMessage.text = info["lastMessage"]?["text"].stringValue
+    cell.lastMessageDate.text = dateFormatter(timestamp: info["lastMessage"]?["date"].double)
     return cell
   }
   
@@ -153,11 +159,30 @@ extension MessagesViewController {
           .child("User-messages")
           .child(Me.uid)
           .child(uid)
-          .queryStarting(atValue: nil, childKey: converted.last!.uid),
+          .queryStarting(atValue: nil, childKey: converted.last?.uid),
         delegate: nil)
       self?.navigationController?.show(chatLog, sender: nil)
       tableView.deselectRow(at: indexPath, animated: true)
       tableView.isUserInteractionEnabled = true
+    }
+  }
+  
+  func dateFormatter(timestamp: Double?) -> String? {
+    if let timestamp = timestamp {
+      let date = Date(timeIntervalSinceReferenceDate: timestamp)
+      let dateFormatter = DateFormatter()
+      let timeSinceDateInSecond = Date().timeIntervalSince(date)
+      let secondsInDay: TimeInterval = 24*60*60
+      if timeSinceDateInSecond > 7*secondsInDay {
+        dateFormatter.dateFormat = "MM/dd/yy"
+      } else if timeSinceDateInSecond > secondsInDay {
+        dateFormatter.dateFormat = "EEE"
+      } else {
+        dateFormatter.dateFormat = "h:m a"
+      }
+      return dateFormatter.string(from: date)
+    }else {
+      return nil
     }
   }
 }
