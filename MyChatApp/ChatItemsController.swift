@@ -9,29 +9,57 @@
 import Foundation
 import Chatto
 import ChattoAdditions
+import FirebaseDatabase
+import SwiftyJSON
 
-class ChatItemsController {
+class ChatItemsController: NSObject {
   
   var chatItems = [ChatItemProtocol]()
-  var totalMessages = [ChatItemProtocol]()
+  var inititalMessages = [ChatItemProtocol]()
+  var loadMore = false
+  var userUID: String!
   
-  func loadIntoItemsArray(messageNeeded: Int) {
+  typealias CompletionLoading = () -> Void
+  
+  func loadIntoItemsArray(messageNeeded: Int, moreLoad: Bool) {
     
-    for index in stride(from: totalMessages.count - chatItems.count, to: totalMessages.count - chatItems.count - messageNeeded, by: -1) {
-      self.chatItems.insert(totalMessages[index-1], at: 0)
+    for index in stride(from: inititalMessages.count - chatItems.count, to: inititalMessages.count - chatItems.count - messageNeeded, by: -1) {
+      self.chatItems.insert(inititalMessages[index-1], at: 0)
     }
+    
+    self.loadMore = moreLoad
   }
   
   func insertItem(message: ChatItemProtocol) {
     self.chatItems.append(message)
-    self.totalMessages.append(message)
   }
   
-  func loadPrevious() {
-    self.loadIntoItemsArray(messageNeeded: min(totalMessages.count - chatItems.count, 50))
+  func loadPrevious(completion: @escaping CompletionLoading) {
+    Database.database().reference()
+      .child("User-messages")
+      .child(Me.uid)
+      .child(userUID)
+      .queryEnding(atValue: nil, childKey: self.chatItems.first!.uid)
+      .queryLimited(toLast: 52)
+      .observeSingleEvent(of: .value) {[weak self] (snapshot) in
+        var messages = Array(JSON(snapshot.value as Any).dictionaryValue.values).sorted(by: { (lhs, rhs) -> Bool in
+          return lhs["date"].doubleValue < rhs["date"].doubleValue
+        })
+        messages.removeLast()
+        self?.loadMore = messages.count > 50
+        let converted = self!.convertToChatItemProtocol(messages: messages)
+        
+        for index in stride(from: converted.count, to: converted.count - min(messages.count, 50), by: -1) {
+          self?.chatItems.insert(converted[index-1], at: 0)
+        }
+        
+        completion()
+    }
+    
   }
   
   func adjustWindow() {
     self.chatItems.removeFirst(200)
+    self.loadMore = true
   }
 }

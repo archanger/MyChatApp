@@ -19,8 +19,6 @@ class ChatLogController: BaseChatViewController {
   var decorator = Decorator()
   var userUID: String!
   
-  var totalMessages: [ChatItemProtocol] = []
-  
   override func createPresenterBuilders() -> [ChatItemType : [ChatItemPresenterBuilderProtocol]] {
     let textMessageBuilder = TextMessagePresenterBuilder(viewModelBuilder: TextBuilder(), interactionHandler: TextHandler())
     let photoMessageBuilder = PhotoMessagePresenterBuilder(viewModelBuilder: PhotoBuilder(), interactionHandler: PhotoHandler())
@@ -43,7 +41,7 @@ class ChatLogController: BaseChatViewController {
       
       let date = Date()
       let double = Double(date.timeIntervalSinceReferenceDate)
-      let senderID = Auth.auth().currentUser!.uid
+      let senderID = Me.uid
       let messageUID: String = "\(double)\(senderID)".replacingOccurrences(of: ".", with: "")
       
       let message = MessageModel(uid: messageUID, senderId: senderID, type: TextModel.chatItemType, isIncoming: false, date: Date(), status: .sending)
@@ -85,7 +83,8 @@ class ChatLogController: BaseChatViewController {
       "uid": uid,
       "date": double,
       "senderID": senderId,
-      "status": "success"
+      "status": "success",
+      "type": TextModel.chatItemType
     ]
     
     let childUpdates = [

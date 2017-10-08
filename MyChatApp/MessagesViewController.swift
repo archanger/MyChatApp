@@ -15,7 +15,7 @@ import Chatto
 
 class MessagesViewController: UIViewController, FUICollectionDelegate, UITableViewDelegate, UITableViewDataSource {
   
-  let contacts = FUIArray(query: Database.database().reference().child("Users").child(Auth.auth().currentUser!.uid).child("Contacts"))
+  let contacts = FUIArray(query: Database.database().reference().child("Users").child(Me.uid).child("Contacts"))
   
   @IBOutlet weak var tableView: UITableView!
   
@@ -26,6 +26,7 @@ class MessagesViewController: UIViewController, FUICollectionDelegate, UITableVi
     self.contacts.delegate = self
     self.tableView.delegate = self
     self.tableView.dataSource = self
+    Database.database().reference().child("User-messages").child(Me.uid).keepSynced(true)
   }
   
   override func didReceiveMemoryWarning() {
@@ -66,11 +67,11 @@ class MessagesViewController: UIViewController, FUICollectionDelegate, UITableVi
       }) {
         
         let allUpdates =
-          ["/Users/\(Auth.auth().currentUser!.uid)/Contacts/\(snapshot[index].key)": [
+          ["/Users/\(Me.uid)/Contacts/\(snapshot[index].key)": [
             "email": snapshot[index].value["email"].stringValue,
             "name":snapshot[index].value["name"].stringValue
             ],
-           "/Users/\(snapshot[index].key)/Contacts/\(Auth.auth().currentUser!.uid)" : [
+           "/Users/\(snapshot[index].key)/Contacts/\(Me.uid)" : [
             "email": Auth.auth().currentUser!.email!,
             "name": Auth.auth().currentUser!.displayName!
             ]
@@ -129,11 +130,26 @@ extension MessagesViewController {
   }
   
   func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-    let chatLog = ChatLogController()
-    let uid = (contacts[UInt(indexPath.row)] as? DataSnapshot)?.key
-    chatLog.userUID = uid
-    chatLog.datasource = DataSource(totalMessages: [])
-    self.navigationController?.show(chatLog, sender: nil)
-    tableView.deselectRow(at: indexPath, animated: true)
+    let uid = (contacts[UInt(indexPath.row)] as? DataSnapshot)!.key
+    let reference = Database.database().reference()
+      .child("User-messages")
+      .child(Me.uid)
+      .child(uid)
+      .queryLimited(toLast: 51)
+    self.tableView.isUserInteractionEnabled = false
+    
+    reference.observeSingleEvent(of: .value) {[weak self] (snapshot) in
+     
+      let messages = Array(JSON(snapshot.value as Any).dictionaryValue.values).sorted(by: { (lhs, rhs) -> Bool in
+        return lhs["date"].doubleValue < rhs["date"].doubleValue
+      })
+      let converted = self!.convertToChatItemProtocol(messages: messages)
+      let chatLog = ChatLogController()
+      chatLog.userUID = uid
+      chatLog.datasource = DataSource(initialMessages: converted, uid: uid)
+      self?.navigationController?.show(chatLog, sender: nil)
+      tableView.deselectRow(at: indexPath, animated: true)
+      tableView.isUserInteractionEnabled = true
+    }
   }
 }

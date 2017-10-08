@@ -14,6 +14,7 @@ class DataSource: ChatDataSourceProtocol {
   
   weak var delegate: ChatDataSourceDelegateProtocol?
   var controller = ChatItemsController()
+  var currentlyLoading = false
   
   var chatItems: [ChatItemProtocol] {
     return controller.chatItems
@@ -23,12 +24,13 @@ class DataSource: ChatDataSourceProtocol {
     return false
   }
   var hasMorePrevious: Bool {
-    return controller.totalMessages.count - controller.chatItems.count > 0
+    return controller.loadMore
   }
   
-  init(totalMessages: [ChatItemProtocol]) {
-    self.controller.totalMessages = totalMessages
-    self.controller.loadIntoItemsArray(messageNeeded: min(totalMessages.count, 50))
+  init(initialMessages: [ChatItemProtocol], uid: String) {
+    self.controller.inititalMessages = initialMessages
+    self.controller.userUID = uid
+    self.controller.loadIntoItemsArray(messageNeeded: min(initialMessages.count, 50), moreLoad: initialMessages.count > 50)
   }
   
   func loadNext() {
@@ -36,8 +38,13 @@ class DataSource: ChatDataSourceProtocol {
   }
   
   func loadPrevious() {
-    controller.loadPrevious()
-    self.delegate?.chatDataSourceDidUpdate(self, updateType: .pagination)
+    if currentlyLoading == false {
+      currentlyLoading = true
+      controller.loadPrevious() { [weak self] in
+        self?.delegate?.chatDataSourceDidUpdate(self!, updateType: .pagination)
+        self?.currentlyLoading = false
+      }
+    }
   }
   
   func addMessage(message: ChatItemProtocol) {
