@@ -11,13 +11,16 @@ import Chatto
 import ChattoAdditions
 import FirebaseAuth
 import FirebaseDatabase
+import FirebaseDatabaseUI
+import SwiftyJSON
 
-class ChatLogController: BaseChatViewController {
+class ChatLogController: BaseChatViewController, FUICollectionDelegate {
 
   var presenter: BasicChatInputBarPresenter!
   var datasource: DataSource!
   var decorator = Decorator()
   var userUID: String!
+  var messagesArray: FUIArray!
   
   override func createPresenterBuilders() -> [ChatItemType : [ChatItemPresenterBuilderProtocol]] {
     let textMessageBuilder = TextMessagePresenterBuilder(viewModelBuilder: TextBuilder(), interactionHandler: TextHandler())
@@ -75,6 +78,9 @@ class ChatLogController: BaseChatViewController {
     self.chatDataSource = self.datasource
     self.chatItemsDecorator = self.decorator
     self.constants.preferredMaxMessageCount = 300
+    
+    self.messagesArray.observeQuery()
+    self.messagesArray.delegate = self
   }
 
   func sendOnlineTextMessage(text: String, uid: String, double: Double, senderId: String) {
@@ -103,3 +109,25 @@ class ChatLogController: BaseChatViewController {
   }
 }
 
+extension ChatLogController {
+  func array(_ array: FUICollection, didAdd object: Any, at index: UInt) {
+    let message = JSON((object as! DataSnapshot).value as Any)
+    let contains = self.datasource.chatItems.contains { (cMessage) -> Bool in
+      return cMessage.uid == message["uid"].stringValue
+    }
+    
+    if contains == false {
+      let senderId = message["senderID"].stringValue
+      let model = MessageModel(
+        uid: message["uid"].stringValue,
+        senderId: senderId,
+        type: message["type"].stringValue,
+        isIncoming: senderId == Me.uid ? false : true,
+        date: Date(timeIntervalSinceReferenceDate: message["date"].doubleValue),
+        status: message["status"].stringValue == "success" ? .success : .sending
+      )
+      let textMessage = TextModel(messageModel: model, text: message["text"].stringValue)
+      self.datasource.addMessage(message: textMessage)
+    }
+  }
+}
